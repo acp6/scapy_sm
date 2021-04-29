@@ -26,7 +26,8 @@ _tls_version = {0x0002: "SSLv2",
                 0x0303: "TLS 1.2",
                 0x7f12: "TLS 1.3-d18",
                 0x7f13: "TLS 1.3-d19",
-                0x0304: "TLS 1.3"}
+                0x0304: "TLS 1.3",
+                0x0101: "TLCP/CTLS"}
 
 _tls_version_options = {"sslv2": 0x0002,
                         "sslv3": 0x0300,
@@ -36,7 +37,8 @@ _tls_version_options = {"sslv2": 0x0002,
                         "tls12": 0x0303,
                         "tls13-d18": 0x7f12,
                         "tls13-d19": 0x7f13,
-                        "tls13": 0x0304}
+                        "tls13": 0x0304,
+                        "tlcp/ctls": 0x0101}
 
 
 def _tls13_version_filter(version, legacy_version):

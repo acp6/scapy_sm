@@ -324,7 +324,8 @@ class TLS(_GenericTLSSessionInheritance):
             if plen >= 2:
                 byte0, byte1 = struct.unpack("BB", _pkt[:2])
                 s = kargs.get("tls_session", None)
-                if byte0 not in _tls_type or byte1 != 3:  # Unknown type
+                # TLS version is 3.x, TLCP is 1.x
+                if byte0 not in _tls_type or (byte1 != 3 and byte1 != 1):  # Unknown type
                     # Check SSLv2: either the session is already SSLv2,
                     # either the packet looks like one. As said above, this
                     # isn't 100% reliable, but Wireshark does the same
@@ -624,6 +625,9 @@ class TLS(_GenericTLSSessionInheritance):
             h = alg.digest(write_seq_num + hdr + msg)
         elif version == 0x300:
             h = alg.digest_sslv3(write_seq_num + hdr[:1] + hdr[3:5] + msg)
+        elif version == 0x101:
+            # TLCP/CTLS
+            h = alg.digest(write_seq_num + hdr + msg)
         else:
             raise Exception("Unrecognized version.")
         return msg + h
