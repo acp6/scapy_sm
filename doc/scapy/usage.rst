@@ -276,7 +276,7 @@ Injecting bytes
 .. index::
    single: RawVal
 
-In a packet, each field has a specific type. For instance, the length field of the IP packet ``len`` expects an integer. More on that later. If you're developping a PoC, there are times where you'll want to inject some value that doesn't fit that type. This is possible using ``RawVal``
+In a packet, each field has a specific type. For instance, the length field of the IP packet ``len`` expects an integer. More on that later. If you're developing a PoC, there are times where you'll want to inject some value that doesn't fit that type. This is possible using ``RawVal``
 
 .. code::
 
@@ -710,6 +710,8 @@ We can sniff and do passive OS fingerprinting::
     (1.0, ['Windows 2000 (9)'])
 
 The number before the OS guess is the accuracy of the guess.
+
+.. note:: When sniffing on several interfaces (e.g. ``iface=["eth0", ...]``), you can check what interface a packet was sniffed on by using the ``sniffed_on`` attribute, as shown in one of the examples above.
 
 Asynchronous Sniffing
 ---------------------

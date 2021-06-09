@@ -1305,7 +1305,7 @@ class RawPcapReader:
 
     def fileno(self):
         # type: () -> int
-        return self.f.fileno()
+        return -1 if WINDOWS else self.f.fileno()
 
     def close(self):
         # type: () -> Optional[Any]
@@ -1381,7 +1381,7 @@ class RawPcapNgReader(RawPcapReader):
 
     alternative = RawPcapReader  # type: Type[Any]
 
-    PacketMetadata = collections.namedtuple("PacketMetadata",
+    PacketMetadata = collections.namedtuple("PacketMetadataNg",
                                             ["linktype", "tsresol",
                                              "tshigh", "tslow", "wirelen"])
 
@@ -1689,7 +1689,7 @@ class RawPcapWriter:
 
     def fileno(self):
         # type: () -> int
-        return self.f.fileno()
+        return -1 if WINDOWS else self.f.fileno()
 
     def write_header(self, pkt):
         # type: (Optional[Union[Packet, bytes]]) -> None
@@ -2573,16 +2573,17 @@ class PeriodicSenderThread(threading.Thread):
 
     def run(self):
         # type: () -> None
-        while not self._stopped.is_set():
+        while not self._stopped.is_set() and not self._socket.closed:
             for p in self._pkts:
                 self._socket.send(p)
                 time.sleep(self._interval)
-                if self._stopped.is_set():
+                if self._stopped.is_set() or self._socket.closed:
                     break
 
     def stop(self):
         # type: () -> None
         self._stopped.set()
+        self.join(self._interval * 2)
 
 
 class SingleConversationSocket(object):
@@ -2612,4 +2613,8 @@ class SingleConversationSocket(object):
     def send(self, x):
         # type: (Packet) -> Any
         with self._tx_mutex:
-            return self._inner.send(x)
+            try:
+                return self._inner.send(x)
+            except (ConnectionError, OSError) as e:
+                self._inner.close()
+                raise e
