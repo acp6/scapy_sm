@@ -30,7 +30,7 @@ function to get all information about one specific protocol.
 |                      +----------------------+--------------------------------------------------------+
 |                      | SOME/IP              | SOMEIP, SD                                             |
 |                      +----------------------+--------------------------------------------------------+
-|                      | BMW HSFZ             | HSFZ, HSFZSocket, ISOTP_HSFZSocket                     |
+|                      | BMW HSFZ             | HSFZ, HSFZSocket, UDS_HSFZSocket                       |
 |                      +----------------------+--------------------------------------------------------+
 |                      | OBD                  | OBD, OBD_S0[0-9A]                                      |
 |                      +----------------------+--------------------------------------------------------+
@@ -657,7 +657,7 @@ Creating a CTO message::
     CTORequest() / GetDaqResolutionInfo()
     CTORequest() / GetSeed(mode=0x01, resource=0x00)
 
-To send the message over CAN a header has to be added
+To send the message over CAN a header has to be added::
 
     pkt = XCPOnCAN(identifier=0x700) / CTORequest() / Connect()
     sock = CANSocket(iface=can.interface.Bus(bustype='socketcan', channel='vcan0'))
@@ -753,19 +753,19 @@ ISOTP message
 Creating an ISOTP message::
 
    load_contrib('isotp')
-   ISOTP(src=0x241, dst=0x641, data=b"\x3eabc")
+   ISOTP(tx_id=0x241, rx_id=0x641, data=b"\x3eabc")
 
 Creating an ISOTP message with extended addressing::
 
-   ISOTP(src=0x241, dst=0x641, exdst=0x41, data=b"\x3eabc")
+   ISOTP(tx_id=0x241, rx_id=0x641, rx_ext_address=0x41, data=b"\x3eabc")
 
 Creating an ISOTP message with extended addressing::
 
-   ISOTP(src=0x241, dst=0x641, exdst=0x41, exsrc=0x41, data=b"\x3eabc")
+   ISOTP(tx_id=0x241, rx_id=0x641, rx_ext_address=0x41, ext_address=0x41, data=b"\x3eabc")
 
 Create CAN-frames from an ISOTP message::
 
-   ISOTP(src=0x241, dst=0x641, exdst=0x41, exsrc=0x55, data=b"\x3eabc" * 10).fragment()
+   ISOTP(tx_id=0x241, rx_id=0x641, rx_ext_address=0x41, ext_address=0x55, data=b"\x3eabc" * 10).fragment()
 
 Send ISOTP message over ISOTP socket::
 
@@ -786,7 +786,7 @@ is using the Linux kernel module from Hartkopp. The other implementation, the ``
 is completely implemented in Python. This implementation can be used on Linux,
 Windows, and OSX.
 
-An ``ISOTPSocket`` will not respect ``src, dst, exdst, exsrc`` of an ``ISOTP``
+An ``ISOTPSocket`` will not respect ``tx_id, rx_id, rx_ext_address, ext_address`` of an ``ISOTP``
 message object.
 
 System compatibilities

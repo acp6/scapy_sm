@@ -24,13 +24,14 @@ from scapy.consts import BIG_ENDIAN, BSD, LINUX
 from scapy.data import ETHER_TYPES, MTU
 from scapy.error import warning, log_runtime
 from scapy.fields import Field, FlagsField, StrFixedLenField, XShortEnumField
+from scapy.interfaces import network_name
 from scapy.layers.inet import IP
 from scapy.layers.inet6 import IPv46, IPv6
 from scapy.layers.l2 import Ether
 from scapy.packet import Packet
 from scapy.supersocket import SimpleSocket
 
-import scapy.modules.six as six
+import scapy.libs.six as six
 
 # Linux-specific defines (/usr/include/linux/if_tun.h)
 LINUX_TUNSETIFF = 0x400454ca
@@ -113,7 +114,9 @@ class TunTapInterface(SimpleSocket):
 
     def __init__(self, iface=None, mode_tun=None, default_read_size=MTU,
                  strip_packet_info=True, *args, **kwargs):
-        self.iface = bytes_encode(conf.iface if iface is None else iface)
+        self.iface = bytes_encode(
+            network_name(conf.iface if iface is None else iface)
+        )
 
         self.mode_tun = mode_tun
         if self.mode_tun is None:

@@ -195,9 +195,9 @@ class StagedAutomotiveTestCase(AutomotiveTestCaseABC, TestCaseGenerator, StateGe
                 if self.__current_kwargs is not None and con_kwargs is not None:  # noqa: E501
                     self.__current_kwargs.update(con_kwargs)
 
-            log_interactive.debug("[i] Stage AutomotiveTestCase %s kwargs: %s",
-                                  self.current_test_case.__class__.__name__,
-                                  self.__current_kwargs)
+        log_interactive.debug("[i] Stage AutomotiveTestCase %s kwargs: %s",
+                              self.current_test_case.__class__.__name__,
+                              self.__current_kwargs)
 
         self.current_test_case.pre_execute(socket, state, global_configuration)
 
@@ -215,25 +215,20 @@ class StagedAutomotiveTestCase(AutomotiveTestCaseABC, TestCaseGenerator, StateGe
             socket, state, global_configuration)
 
     @staticmethod
-    def _show_headline(headline, sep="=", dump=False):
-        # type: (str, str, bool) -> Optional[str]
+    def _show_headline(headline, sep="="):
+        # type: (str, str) -> str
         s = "\n\n" + sep * (len(headline) + 10) + "\n"
         s += " " * 5 + headline + "\n"
         s += sep * (len(headline) + 10) + "\n"
-
-        if dump:
-            return s + "\n"
-        else:
-            print(s)
-            return None
+        return s + "\n"
 
     def show(self, dump=False, filtered=True, verbose=False):
         # type: (bool, bool, bool) -> Optional[str]
-        s = self._show_headline("AutomotiveTestCase Pipeline", "=", dump) or ""
+        s = self._show_headline("AutomotiveTestCase Pipeline", "=")
         for idx, t in enumerate(self.__test_cases):
             s += self._show_headline(
-                "AutomotiveTestCase Stage %d" % idx, "-", dump) or ""
-            s += t.show(dump, filtered, verbose) or ""
+                "AutomotiveTestCase Stage %d" % idx, "-")
+            s += t.show(True, filtered, verbose) or ""
 
         if dump:
             return s + "\n"

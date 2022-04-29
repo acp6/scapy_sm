@@ -12,11 +12,12 @@ import time
 from itertools import product
 
 from scapy.compat import Any, Union, List, Optional, \
-    Dict, Callable, Type
+    Dict, Callable, Type, cast
 from scapy.contrib.automotive.scanner.graph import Graph
 from scapy.error import Scapy_Exception, log_interactive
+from scapy.supersocket import SuperSocket
 from scapy.utils import make_lined_table, SingleConversationSocket
-import scapy.modules.six as six
+import scapy.libs.six as six
 from scapy.contrib.automotive.ecu import EcuState, EcuResponse, Ecu
 from scapy.contrib.automotive.scanner.configuration import \
     AutomotiveTestCaseExecutorConfiguration
@@ -30,6 +31,16 @@ class AutomotiveTestCaseExecutor:
     Base class for different automotive scanners. This class handles
     the connection to a scan target, ensures the execution of all it's
     test cases, and stores the system state machine
+
+
+    :param socket: A socket object to communicate with the scan target
+    :param reset_handler: A function to reset the scan target
+    :param reconnect_handler: In case the communication needs to be
+                              established after a reset, provide a
+                              reconnect function which returns a socket object
+    :param test_cases: A list of TestCase instances or classes
+    :param kwargs: Arguments for the internal
+                   AutomotiveTestCaseExecutorConfiguration instance
     """
     @property
     def __initial_ecu_state(self):
@@ -44,6 +55,7 @@ class AutomotiveTestCaseExecutor:
             test_cases=None,  # type: Optional[List[Union[AutomotiveTestCaseABC, Type[AutomotiveTestCaseABC]]]]  # noqa: E501
             **kwargs  # type: Optional[Dict[str, Any]]
     ):  # type: (...) -> None
+
         # The TesterPresentSender can interfere with a test_case, since a
         # target may only allow one request at a time.
         # The SingleConversationSocket prevents interleaving requests.
@@ -145,6 +157,10 @@ class AutomotiveTestCaseExecutor:
             else:
                 self.socket = socket
 
+        if self.socket.closed:
+            raise Scapy_Exception(
+                "Socket closed even after reconnect. Stop scan!")
+
     def execute_test_case(self, test_case):
         # type: (AutomotiveTestCaseABC) -> None
         """
@@ -222,6 +238,15 @@ class AutomotiveTestCaseExecutor:
                     log_interactive.critical("[-] Exception: %s", e)
                     if self.configuration.debug:
                         raise e
+                    if isinstance(e, OSError):
+                        log_interactive.critical(
+                            "[-] OSError occurred, closing socket")
+                        self.socket.close()
+                    if cast(SuperSocket, self.socket).closed and \
+                            self.reconnect_handler is None:
+                        log_interactive.critical(
+                            "Socket went down. Need to leave scan")
+                        raise e
                 finally:
                     self.cleanup_state()
 
@@ -244,11 +269,12 @@ class AutomotiveTestCaseExecutor:
         if path[0] != self.__initial_ecu_state:
             raise Scapy_Exception(
                 "Initial state of path not equal reset state of the target")
-        if len(path) == 1:
-            return True
 
         self.reset_target()
         self.reconnect()
+
+        if len(path) == 1:
+            return True
 
         for next_state in path[1:]:
             edge = (self.target_state, next_state)

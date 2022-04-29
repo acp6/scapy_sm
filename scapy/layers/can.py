@@ -17,7 +17,7 @@ import binascii
 from scapy.compat import Tuple, Optional, Type, List, Union, Callable, IO, \
     Any, cast
 
-import scapy.modules.six as six
+import scapy.libs.six as six
 from scapy.config import conf
 from scapy.compat import orb
 from scapy.data import DLT_CAN_SOCKETCAN
@@ -74,7 +74,7 @@ class CAN(Packet):
     the wire is given by the length field. To obtain only the CAN frame from
     the wire, this additional padding has to be removed. Nevertheless, for
     corner cases, it might be useful to also get the padding. This can be
-    configuered through the **remove-padding** configuration.
+    configured through the **remove-padding** configuration.
 
     Truncate CAN frame based on length field:
         >>> conf.contribs['CAN']['remove-padding'] = True
@@ -607,12 +607,20 @@ class CandumpReader:
     def recv(self, size=CAN_MTU):
         # type: (int) -> Optional[Packet]
         """Emulation of SuperSocket"""
-        return self.read_packet(size=size)
+        try:
+            return self.read_packet(size=size)
+        except EOFError:
+            return None
 
     def fileno(self):
         # type: () -> int
         """Emulation of SuperSocket"""
         return self.f.fileno()
+
+    @property
+    def closed(self):
+        # type: () -> bool
+        return self.f.closed
 
     def close(self):
         # type: () -> Any
@@ -631,4 +639,5 @@ class CandumpReader:
     def select(sockets, remain=None):
         # type: (List[SuperSocket], Optional[int]) -> List[SuperSocket]
         """Emulation of SuperSocket"""
-        return sockets
+        return [s for s in sockets if isinstance(s, CandumpReader) and
+                not s.closed]
