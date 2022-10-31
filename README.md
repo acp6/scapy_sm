@@ -1,6 +1,6 @@
 <!-- start_ppi_description -->
 
-# <img src="doc/scapy_logo.png" width="64" valign="middle" alt="Scapy" />&nbsp;&nbsp; Scapy
+# <img src="https://github.com/secdev/scapy/raw/master/doc/scapy/graphics/scapy_logo.png" width="64" valign="middle" alt="Scapy" />&nbsp;&nbsp; Scapy
 
 # Updated with TLCP protocol support
 
