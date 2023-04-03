@@ -8,13 +8,11 @@
 Management Information Base (MIB) parsing
 """
 
-from __future__ import absolute_import
 import re
 from glob import glob
 from scapy.dadict import DADict, fixname
 from scapy.config import conf
 from scapy.utils import do_graph
-import scapy.libs.six as six
 from scapy.compat import plain_str
 
 from scapy.compat import (
@@ -48,7 +46,7 @@ class MIBDict(DADict[str, str]):
         max = 0
         root = "."
         root_key = ""
-        for k in six.iterkeys(self):
+        for k in self:
             if x.startswith(k + "."):
                 if max < len(k):
                     max = len(k)
@@ -69,9 +67,9 @@ class MIBDict(DADict[str, str]):
         p = len(xl) - 1
         while p >= 0 and _mib_re_integer.match(xl[p]):
             p -= 1
-        if p != 0 or xl[p] not in six.itervalues(self.d):
+        if p != 0 or xl[p] not in self.d.values():
             return x
-        xl[p] = next(k for k, v in six.iteritems(self.d) if v == xl[p])
+        xl[p] = next(k for k, v in self.d.items() if v == xl[p])
         return ".".join(xl[p:])
 
     def _make_graph(self, other_keys=None, **kargs):
@@ -164,7 +162,7 @@ def load_mib(filenames):
     unresolved = {}  # type: Dict[str, List[str]]
     alias = {}  # type: Dict[str, str]
     # Export the current MIB to a working dictionary
-    for k in six.iterkeys(conf.mib):
+    for k in conf.mib:
         _mib_register(conf.mib[k], k.split("."), the_mib, unresolved, alias)
 
     # Read the files
@@ -193,14 +191,14 @@ def load_mib(filenames):
     # Create the new MIB
     newmib = MIBDict(_name="MIB")
     # Add resolved values
-    for oid, key in six.iteritems(the_mib):
+    for oid, key in the_mib.items():
         newmib[".".join(key)] = oid
     # Add unresolved values
-    for oid, key in six.iteritems(unresolved):
+    for oid, key in unresolved.items():
         newmib[".".join(key)] = oid
     # Add aliases
-    for key, oid in six.iteritems(alias):
-        newmib[key] = oid
+    for key_s, oid in alias.items():
+        newmib[key_s] = oid
 
     conf.mib = newmib
 
@@ -367,16 +365,16 @@ attributeType_oids = {
 }
 
 certificateExtension_oids = {
-    "2.5.29.1": "authorityKeyIdentifier",
+    "2.5.29.1": "authorityKeyIdentifier(obsolete)",
     "2.5.29.2": "keyAttributes",
-    "2.5.29.3": "certificatePolicies",
+    "2.5.29.3": "certificatePolicies(obsolete)",
     "2.5.29.4": "keyUsageRestriction",
     "2.5.29.5": "policyMapping",
     "2.5.29.6": "subtreesConstraint",
-    "2.5.29.7": "subjectAltName",
-    "2.5.29.8": "issuerAltName",
+    "2.5.29.7": "subjectAltName(obsolete)",
+    "2.5.29.8": "issuerAltName(obsolete)",
     "2.5.29.9": "subjectDirectoryAttributes",
-    "2.5.29.10": "basicConstraints",
+    "2.5.29.10": "basicConstraints(obsolete)",
     "2.5.29.14": "subjectKeyIdentifier",
     "2.5.29.15": "keyUsage",
     "2.5.29.16": "privateKeyUsagePeriod",
@@ -388,8 +386,8 @@ certificateExtension_oids = {
     "2.5.29.22": "expirationDate",
     "2.5.29.23": "instructionCode",
     "2.5.29.24": "invalidityDate",
-    "2.5.29.25": "cRLDistributionPoints",
-    "2.5.29.26": "issuingDistributionPoint",
+    "2.5.29.25": "cRLDistributionPoints(obsolete)",
+    "2.5.29.26": "issuingDistributionPoint(obsolete)",
     "2.5.29.27": "deltaCRLIndicator",
     "2.5.29.28": "issuingDistributionPoint",
     "2.5.29.29": "certificateIssuer",
@@ -397,7 +395,7 @@ certificateExtension_oids = {
     "2.5.29.31": "cRLDistributionPoints",
     "2.5.29.32": "certificatePolicies",
     "2.5.29.33": "policyMappings",
-    "2.5.29.34": "policyConstraints",
+    "2.5.29.34": "policyConstraints(obsolete)",
     "2.5.29.35": "authorityKeyIdentifier",
     "2.5.29.36": "policyConstraints",
     "2.5.29.37": "extKeyUsage",
